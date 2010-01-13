@@ -21,5 +21,7 @@ obj-$(CONFIG_HP_ILO)		+= hpilo.o
 obj-$(CONFIG_ISL29003)		+= isl29003.o
 obj-$(CONFIG_C2PORT)		+= c2port/
 obj-$(CONFIG_MXS_PERSISTENT)	+= mxs-persistent.o
+obj-$(CONFIG_ANDROID_PMEM)	+= pmem.o
+obj-$(CONFIG_UID_STAT)		+= uid_stat.o
 obj-y				+= eeprom/
 obj-y				+= cb710/

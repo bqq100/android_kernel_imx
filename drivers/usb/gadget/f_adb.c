@@ -36,7 +36,7 @@
 
 #include "f_adb.h"
 
-#define BULK_BUFFER_SIZE           4096
+#define ADB_BULK_BUFFER_SIZE           4096
 
 /* number of rx and tx requests to allocate */
 #define RX_REQ_MAX 4
@@ -263,7 +263,7 @@ static int __init create_bulk_endpoints(struct adb_dev *dev,
 
 	/* now allocate requests for our endpoints */
 	for (i = 0; i < RX_REQ_MAX; i++) {
-		req = adb_request_new(dev->ep_out, BULK_BUFFER_SIZE);
+		req = adb_request_new(dev->ep_out, ADB_BULK_BUFFER_SIZE);
 		if (!req)
 			goto fail;
 		req->complete = adb_complete_out;
@@ -271,7 +271,7 @@ static int __init create_bulk_endpoints(struct adb_dev *dev,
 	}
 
 	for (i = 0; i < TX_REQ_MAX; i++) {
-		req = adb_request_new(dev->ep_in, BULK_BUFFER_SIZE);
+		req = adb_request_new(dev->ep_in, ADB_BULK_BUFFER_SIZE);
 		if (!req)
 			goto fail;
 		req->complete = adb_complete_in;
@@ -320,7 +320,7 @@ static ssize_t adb_read(struct file *fp, char __user *buf,
 		/* if we have idle read requests, get them queued */
 		while ((req = req_get(dev, &dev->rx_idle))) {
 requeue_req:
-			req->length = BULK_BUFFER_SIZE;
+			req->length = ADB_BULK_BUFFER_SIZE;
 			ret = usb_ep_queue(dev->ep_out, req, GFP_ATOMIC);
 
 			if (ret < 0) {
@@ -419,8 +419,8 @@ static ssize_t adb_write(struct file *fp, const char __user *buf,
 		}
 
 		if (req != 0) {
-			if (count > BULK_BUFFER_SIZE)
-				xfer = BULK_BUFFER_SIZE;
+			if (count > ADB_BULK_BUFFER_SIZE)
+				xfer = ADB_BULK_BUFFER_SIZE;
 			else
 				xfer = count;
 			if (copy_from_user(req->buf, buf, xfer)) {

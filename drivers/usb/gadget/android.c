@@ -255,6 +255,7 @@ static void enable_adb(struct android_dev *dev, int enable)
 			usb_gadget_disconnect(dev->cdev->gadget);
 			msleep(10);
 			usb_gadget_connect(dev->cdev->gadget);
+			usb_gadget_vbus_connect(dev->cdev->gadget);
 		}
 	}
 }
@@ -362,7 +363,7 @@ static int __init init(void)
 	}
 	return ret;
 }
-module_init(init);
+late_initcall(init);
 
 static void __exit cleanup(void)
 {

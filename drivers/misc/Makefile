@@ -23,5 +23,6 @@ obj-$(CONFIG_C2PORT)		+= c2port/
 obj-$(CONFIG_MXS_PERSISTENT)	+= mxs-persistent.o
 obj-$(CONFIG_ANDROID_PMEM)	+= pmem.o
 obj-$(CONFIG_UID_STAT)		+= uid_stat.o
+obj-$(CONFIG_FSL_CACHE)		+= fsl_cache.o
 obj-y				+= eeprom/
 obj-y				+= cb710/

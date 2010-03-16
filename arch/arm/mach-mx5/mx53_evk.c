@@ -1028,6 +1028,7 @@ static struct mxc_mmc_platform_data mmc3_data = {
 	.status = sdhc_get_card_det_status,
 	.wp_status = sdhc_write_protect,
 	.clock_mmc = "esdhc_clk",
+	.clk_always_on = 1,
 };
 
 /* return value 1 failure, 0 success */

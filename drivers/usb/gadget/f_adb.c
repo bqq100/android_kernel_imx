@@ -29,6 +29,7 @@
 #include <linux/types.h>
 #include <linux/device.h>
 #include <linux/miscdevice.h>
+#include <linux/wakelock.h>
 
 #include <linux/usb/ch9.h>
 #include <linux/usb/composite.h>
@@ -70,6 +71,8 @@ struct adb_dev {
 	struct usb_request *read_req;
 	unsigned char *read_buf;
 	unsigned read_count;
+
+	struct wake_lock wake_lock;
 };
 
 static struct usb_interface_descriptor adb_interface_desc = {
@@ -572,6 +575,7 @@ static int adb_function_set_alt(struct usb_function *f,
 	}
 	dev->online = 1;
 
+	wake_lock(&dev->wake_lock);
 	/* readers may be blocked waiting for us to go online */
 	wake_up(&dev->read_wq);
 	return 0;
@@ -592,6 +596,14 @@ static void adb_function_disable(struct usb_function *f)
 	wake_up(&dev->read_wq);
 
 	VDBG(cdev, "%s disabled\n", dev->function.name);
+}
+
+static void adb_function_suspend(struct usb_function *f)
+{
+	struct adb_dev *dev = func_to_dev(f);
+	struct usb_composite_dev *cdev = dev->cdev;
+	wake_unlock(&dev->wake_lock);
+	DBG(cdev, "adb function suspend\n");
 }
 
 int __init adb_function_add(struct usb_composite_dev *cdev,
@@ -619,6 +631,9 @@ int __init adb_function_add(struct usb_composite_dev *cdev,
 	INIT_LIST_HEAD(&dev->rx_done);
 	INIT_LIST_HEAD(&dev->tx_idle);
 
+	wake_lock_init(&dev->wake_lock, WAKE_LOCK_SUSPEND,
+			   "usb_adb");
+
 	dev->cdev = cdev;
 	dev->function.name = "adb";
 	dev->function.descriptors = null_adb_descs;
@@ -627,6 +642,7 @@ int __init adb_function_add(struct usb_composite_dev *cdev,
 	dev->function.unbind = adb_function_unbind;
 	dev->function.set_alt = adb_function_set_alt;
 	dev->function.disable = adb_function_disable;
+	dev->function.suspend = adb_function_suspend;
 
 	/* _adb_dev must be set before calling usb_gadget_register_driver */
 	_adb_dev = dev;
@@ -643,6 +659,7 @@ int __init adb_function_add(struct usb_composite_dev *cdev,
 err2:
 	misc_deregister(&adb_device);
 err1:
+	wake_lock_destroy(&dev->wake_lock);
 	kfree(dev);
 	printk(KERN_ERR "adb gadget driver failed to initialize\n");
 	return ret;

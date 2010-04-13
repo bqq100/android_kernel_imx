@@ -1420,10 +1420,14 @@ static int do_mode_sense(struct fsg_dev *fsg, struct fsg_buffhd *bh)
 	}
 
 	/*  Store the mode data length */
-	if (mscmnd == SC_MODE_SENSE_6)
+	if (mscmnd == SC_MODE_SENSE_6) {
+		/* WIN Vista expects len = 0xC0 */
+		if (fsg->data_size_from_cmnd > len)
+			len = fsg->data_size_from_cmnd;
 		buf0[0] = len - 1;
-	else
+	} else {
 		put_be16(buf0, len - 2);
+	}
 	return len;
 }
 
@@ -1745,8 +1749,9 @@ static int check_command(struct fsg_dev *fsg, int cmnd_size,
 	if (cmnd_size != fsg->cmnd_size) {
 
 		/* Special case workaround: MS-Windows issues REQUEST SENSE
-		 * with cbw->Length == 12 (it should be 6). */
-		if (fsg->cmnd[0] == SC_REQUEST_SENSE && fsg->cmnd_size == 12)
+		 * and INQUIRY with cbw->Length == 12 (it should be 6). */
+		if ((fsg->cmnd[0] == SC_REQUEST_SENSE || fsg->cmnd[0] == SC_INQUIRY)
+			&& fsg->cmnd_size == 12)
 			cmnd_size = fsg->cmnd_size;
 		else {
 			fsg->phase_error = 1;

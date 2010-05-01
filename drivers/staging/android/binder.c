@@ -2987,6 +2987,7 @@ static void binder_deferred_release(struct binder_proc *proc)
 		int i;
 		for (i = 0; i < proc->buffer_size / PAGE_SIZE; i++) {
 			if (proc->pages[i]) {
+				void *page_addr = proc->buffer + i * PAGE_SIZE;
 				if (binder_debug_mask &
 				    BINDER_DEBUG_BUFFER_ALLOC)
 					printk(KERN_INFO
@@ -2994,6 +2995,8 @@ static void binder_deferred_release(struct binder_proc *proc)
 					       "page %d at %p not freed\n",
 					       proc->pid, i,
 					       proc->buffer + i * PAGE_SIZE);
+				unmap_kernel_range((unsigned long)page_addr,
+					PAGE_SIZE);
 				__free_page(proc->pages[i]);
 				page_count++;
 			}

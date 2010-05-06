@@ -18,6 +18,7 @@
 
 #include <linux/list.h>
 #include <linux/ktime.h>
+#include <linux/earlysuspend.h>
 
 /* A wake_lock prevents the system from entering suspend or other low power
  * states when active. If the type is set to WAKE_LOCK_SUSPEND, the wake_lock
@@ -38,6 +39,8 @@ struct wake_lock {
 	int                 flags;
 	const char         *name;
 	unsigned long       expires;
+	struct list_head	wake_lock_suspend;
+	struct list_head	wake_lock_resume;
 #ifdef CONFIG_WAKELOCK_STAT
 	struct {
 		int             count;
@@ -73,6 +76,9 @@ int wake_lock_active(struct wake_lock *lock);
  */
 long has_wake_lock(int type);
 
+void wake_lock_suspend(void);
+void wake_lock_resume(void);
+int register_lock_handle(const char *lock_name, struct early_suspend *handler);
 #else
 
 static inline void wake_lock_init(struct wake_lock *lock, int type,

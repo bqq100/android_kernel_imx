@@ -19,6 +19,7 @@
 #include <linux/suspend.h>
 #include <linux/syscalls.h> /* sys_sync */
 #include <linux/wakelock.h>
+#include <linux/earlysuspend.h>
 #ifdef CONFIG_WAKELOCK_STAT
 #include <linux/proc_fs.h>
 #endif
@@ -209,6 +210,38 @@ static void update_sleep_wait_stats_locked(int done)
 }
 #endif
 
+void wake_lock_suspend()
+{
+	struct wake_lock *lock;
+	struct early_suspend *pos;
+
+	pr_debug("wake lock suspend............start\n");
+	list_for_each_entry(lock, &active_wake_locks[WAKE_LOCK_SUSPEND], link) {
+		list_for_each_entry(pos, &lock->wake_lock_suspend, link) {
+			pr_debug("wake lock %s suspend\n", lock->name);
+			if (pos->suspend != NULL)
+				pos->suspend(pos);
+		}
+	}
+}
+EXPORT_SYMBOL(wake_lock_suspend);
+
+void wake_lock_resume()
+{
+	struct wake_lock *lock;
+	struct early_suspend *pos;
+
+	pr_debug("wake lock resume............start\n");
+	list_for_each_entry_reverse(lock, &active_wake_locks[WAKE_LOCK_SUSPEND], link) {
+		list_for_each_entry_reverse(pos, &lock->wake_lock_resume, link) {
+			pr_debug("wake lock %s resume\n", lock->name);
+			if (pos->suspend != NULL)
+				pos->resume(pos);
+		}
+	}
+}
+EXPORT_SYMBOL(wake_lock_resume);
+
 
 static void expire_wake_lock(struct wake_lock *lock)
 {
@@ -364,6 +397,8 @@ void wake_lock_init(struct wake_lock *lock, int type, const char *name)
 	lock->flags = (type & WAKE_LOCK_TYPE_MASK) | WAKE_LOCK_INITIALIZED;
 
 	INIT_LIST_HEAD(&lock->link);
+	INIT_LIST_HEAD(&lock->wake_lock_suspend);
+	INIT_LIST_HEAD(&lock->wake_lock_resume);
 	spin_lock_irqsave(&list_lock, irqflags);
 	list_add(&lock->link, &inactive_locks);
 	spin_unlock_irqrestore(&list_lock, irqflags);

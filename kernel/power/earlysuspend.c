@@ -97,6 +97,8 @@ static void early_suspend(struct work_struct *work)
 		if (pos->suspend != NULL)
 			pos->suspend(pos);
 	}
+
+	wake_lock_suspend();
 	mutex_unlock(&early_suspend_lock);
 
 	if (debug_mask & DEBUG_SUSPEND)
@@ -131,6 +133,9 @@ static void late_resume(struct work_struct *work)
 	}
 	if (debug_mask & DEBUG_SUSPEND)
 		pr_info("late_resume: call handlers\n");
+
+	wake_lock_resume();
+
 	list_for_each_entry_reverse(pos, &early_suspend_handlers, link)
 		if (pos->resume != NULL)
 			pos->resume(pos);

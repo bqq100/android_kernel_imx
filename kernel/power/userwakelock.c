@@ -16,6 +16,7 @@
 #include <linux/ctype.h>
 #include <linux/module.h>
 #include <linux/wakelock.h>
+#include <linux/earlysuspend.h>
 
 #include "power.h"
 
@@ -172,6 +173,23 @@ bad_name:
 	return n;
 }
 
+int register_lock_handle(const char *lock_name, struct early_suspend *handler)
+{
+	struct user_wake_lock *l;
+
+	mutex_lock(&tree_lock);
+	l = lookup_wake_lock_name(lock_name, 1, NULL);
+	if (IS_ERR(l)) {
+		mutex_unlock(&tree_lock);
+		return -1;
+	}
+
+	list_add(&handler->link, &(l->wake_lock.wake_lock_suspend));
+	mutex_unlock(&tree_lock);
+
+	return 0;
+}
+EXPORT_SYMBOL(register_lock_handle);
 
 ssize_t wake_unlock_show(
 	struct kobject *kobj, struct kobj_attribute *attr, char *buf)

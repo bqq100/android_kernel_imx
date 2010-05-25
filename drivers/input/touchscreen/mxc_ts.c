@@ -43,6 +43,9 @@
 #include <linux/pmic_external.h>
 #include <linux/pmic_adc.h>
 #include <linux/kthread.h>
+#ifdef CONFIG_EARLYSUSPEND
+#include <linux/earlysuspend.h>
+#endif
 
 #define MXC_TS_NAME	"mxc_ts"
 
@@ -60,6 +63,30 @@ static struct task_struct *tstask;
 static int calibration[7];
 module_param_array(calibration, int, NULL, S_IRUGO | S_IWUSR);
 
+#ifdef CONFIG_EARLYSUSPEND
+
+static wait_queue_head_t ts_wait;
+static int ts_suspend;
+
+static void stop_ts_early_suspend(struct early_suspend *h)
+{
+	ts_suspend = 1;
+}
+
+static void start_ts_late_resume(struct early_suspend *h)
+{
+	ts_suspend = 0;
+	wake_up_interruptible(&ts_wait);
+}
+
+static struct early_suspend stop_ts_early_suspend_desc = {
+	.level = EARLY_SUSPEND_LEVEL_STOP_DRAWING,
+	.suspend = stop_ts_early_suspend,
+	.resume = start_ts_late_resume,
+};
+
+#endif
+
 static int ts_thread(void *arg)
 {
 	t_touch_screen ts_sample;
@@ -69,6 +96,9 @@ static int ts_thread(void *arg)
 		int x, y;
 		static int last_x = -1, last_y = -1, last_press = -1;
 
+#ifdef CONFIG_EARLYSUSPEND
+		wait_event_interruptible(ts_wait, !ts_suspend);
+#endif
 		memset(&ts_sample, 0, sizeof(t_touch_screen));
 		if (0 != pmic_adc_get_touch_sample(&ts_sample, !wait))
 			continue;
@@ -76,7 +106,7 @@ static int ts_thread(void *arg)
 			continue;
 
 		if (ts_sample.x_position == 0 && ts_sample.y_position == 0 &&
-			ts_sample.contact_resistance == 0) {
+		    ts_sample.contact_resistance == 0) {
 			x = last_x;
 			y = last_y;
 		} else if (calibration[6] == 0) {
@@ -84,14 +114,14 @@ static int ts_thread(void *arg)
 			y = ts_sample.y_position;
 		} else {
 			x = calibration[0] * (int)ts_sample.x_position +
-				calibration[1] * (int)ts_sample.y_position +
-				calibration[2];
+			    calibration[1] * (int)ts_sample.y_position +
+			    calibration[2];
 			x /= calibration[6];
 			if (x < 0)
 				x = 0;
 			y = calibration[3] * (int)ts_sample.x_position +
-				calibration[4] * (int)ts_sample.y_position +
-				calibration[5];
+			    calibration[4] * (int)ts_sample.y_position +
+			    calibration[5];
 			y /= calibration[6];
 			if (y < 0)
 				y = 0;
@@ -119,7 +149,7 @@ static int ts_thread(void *arg)
 		/* report the BTN_TOUCH */
 		if (ts_sample.contact_resistance != last_press)
 			input_event(mxc_inputdev, EV_KEY,
-					BTN_TOUCH, ts_sample.contact_resistance);
+				    BTN_TOUCH, ts_sample.contact_resistance);
 
 		input_sync(mxc_inputdev);
 		last_press = ts_sample.contact_resistance;
@@ -141,8 +171,7 @@ static int __init mxc_ts_init(void)
 
 	mxc_inputdev = input_allocate_device();
 	if (!mxc_inputdev) {
-		printk(KERN_ERR
-		       "mxc_ts_init: not enough memory\n");
+		printk(KERN_ERR "mxc_ts_init: not enough memory\n");
 		return -ENOMEM;
 	}
 
@@ -159,11 +188,14 @@ static int __init mxc_ts_init(void)
 
 	tstask = kthread_run(ts_thread, NULL, "mxc_ts");
 	if (IS_ERR(tstask)) {
-		printk(KERN_ERR
-			"mxc_ts_init: failed to create kthread");
+		printk(KERN_ERR "mxc_ts_init: failed to create kthread");
 		tstask = NULL;
 		return -1;
 	}
+#ifdef CONFIG_EARLYSUSPEND
+	init_waitqueue_head(&ts_wait);
+	register_early_suspend(&stop_ts_early_suspend_desc);
+#endif
 	printk("mxc input touchscreen loaded\n");
 	return 0;
 }
@@ -179,6 +211,9 @@ static void __exit mxc_ts_exit(void)
 		input_free_device(mxc_inputdev);
 		mxc_inputdev = NULL;
 	}
+#ifdef CONFIG_EARLYSUSPEND
+	unregister_early_suspend(&stop_ts_early_suspend_desc);
+#endif
 }
 
 late_initcall(mxc_ts_init);

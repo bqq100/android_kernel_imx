@@ -993,8 +993,13 @@ static void __init fixup_mxc_board(struct machine_desc *desc, struct tag *tags,
 				PHYS_OFFSET + size - android_pmem_pdata.size;
 		android_pmem_gpu_pdata.start =
 				android_pmem_pdata.start - android_pmem_gpu_pdata.size;
+		gpu_device.resource[5].start =
+				android_pmem_gpu_pdata.start - SZ_16M;
+		gpu_device.resource[5].end =
+				gpu_device.resource[5].start + SZ_16M - 1;
 		size -= android_pmem_pdata.size;
 		size -= android_pmem_gpu_pdata.size;
+		size -= SZ_16M;
 		t->u.mem.size = size;
 	}
 #if 0

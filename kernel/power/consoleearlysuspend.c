@@ -36,7 +36,7 @@ static void console_early_suspend(struct early_suspend *h)
 	if (vt_waitactive(EARLY_SUSPEND_CONSOLE))
 		pr_warning("console_early_suspend: Can't switch VCs.\n");
 	return;
-err:
+      err:
 	pr_warning("console_early_suspend: Can't set console\n");
 	release_console_sem();
 }
@@ -62,17 +62,51 @@ static struct early_suspend console_early_suspend_desc = {
 	.resume = console_late_resume,
 };
 
+static ssize_t console_switch_show(struct kobject *kobj,
+				   struct kobj_attribute *attr, char *buf)
+{
+	return 0;
+}
+
+#define power_ro_attr(_name) \
+	static struct kobj_attribute _name##_attr = {	\
+			.attr	= {				\
+						.name = __stringify(_name),	\
+						.mode = 0444,			\
+					},					\
+			.show	= _name##_show,			\
+			.store	= NULL,		\
+	}
+
+power_ro_attr(console_switch);
+
+static struct attribute *g[] = {
+	&console_switch_attr.attr,
+	NULL,
+};
+
+static struct attribute_group attr_group = {
+	.attrs = g,
+};
+
 static int __init console_early_suspend_init(void)
 {
+	int ret;
+
+	ret = sysfs_create_group(power_kobj, &attr_group);
+	if (ret) {
+		pr_err("android_power_init: sysfs_create_group failed\n");
+		return ret;
+	}
 	register_early_suspend(&console_early_suspend_desc);
 	return 0;
 }
 
-static void  __exit console_early_suspend_exit(void)
+static void __exit console_early_suspend_exit(void)
 {
 	unregister_early_suspend(&console_early_suspend_desc);
+	sysfs_remove_group(power_kobj, &attr_group);
 }
 
 module_init(console_early_suspend_init);
 module_exit(console_early_suspend_exit);
-

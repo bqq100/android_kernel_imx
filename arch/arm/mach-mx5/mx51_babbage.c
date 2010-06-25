@@ -52,6 +52,7 @@
 #include <mach/mxc_edid.h>
 #include <linux/android_pmem.h>
 #include <linux/usb/android.h>
+#include <linux/switch.h>
 
 /*!
  * @file mach-mx51/mx51_babbage.c
@@ -1061,6 +1062,80 @@ static void __init fixup_mxc_board(struct machine_desc *desc, struct tag *tags,
 	}
 #endif
 }
+
+static struct switch_dev dvi_sdev;
+static int state;
+static struct delayed_work dvi_det_work;
+static void dvi_update_detect_status(void)
+{
+	int level;
+
+	level = gpio_get_value(BABBAGE_DVI_DET);
+	if (level == 1) {
+		pr_info(KERN_INFO "DVI device plug-in\n");
+		state = 1;
+	} else {
+		pr_info(KERN_INFO "DVI device plug-out\n");
+		state = 0;
+	}
+	switch_set_state(&dvi_sdev, state);
+}
+
+static void dvi_work_func(struct work_struct *work)
+{
+	dvi_update_detect_status();
+}
+
+static irqreturn_t dvi_det_int(int irq, void *dev_id)
+{
+	schedule_delayed_work(&dvi_det_work, msecs_to_jiffies(10));
+	return 0;
+}
+
+static ssize_t print_switch_name(struct switch_dev *sdev, char *buf)
+{
+	return sprintf(buf, "dvi_det\n");
+}
+
+static ssize_t print_switch_state(struct switch_dev *sdev, char *buf)
+{
+	return sprintf(buf, "%s\n", (state ? "online" : "offline"));
+}
+
+static int __init mxc_init_dvi_det(void)
+{
+	int irq, level, ret;
+
+	if (!machine_is_mx51_babbage())
+		return 0;
+
+	dvi_sdev.name = "dvi_det";
+	dvi_sdev.print_name = print_switch_name;
+	dvi_sdev.print_state = print_switch_state;
+	switch_dev_register(&dvi_sdev);
+
+	level = gpio_get_value(BABBAGE_DVI_DET);
+	if (level == 1) {
+		pr_info(KERN_INFO "DVI device plug-in\n");
+		state = 1;
+	} else {
+		pr_info(KERN_INFO "DVI device plug-out\n");
+		state = 0;
+	}
+
+	INIT_DELAYED_WORK(&dvi_det_work, dvi_work_func);
+
+	irq = IOMUX_TO_IRQ_V3(BABBAGE_DVI_DET);
+	set_irq_type(irq, IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING);
+	ret = request_irq(irq, dvi_det_int, 0, "dvi_det", 0);
+	if (ret) {
+		pr_info("register DVI detect interrupt failed\n");
+		return -1;
+	}
+	return 0;
+}
+late_initcall(mxc_init_dvi_det);
+
 
 #define PWGT1SPIEN (1<<15)
 #define PWGT2SPIEN (1<<16)

@@ -741,9 +741,12 @@ irqreturn_t fsl_otg_isr(int irq, void *dev_id)
 	otg_sc = le32_to_cpu(usb_dr_regs->otgsc);
 	otg_int_src = otg_sc & OTGSC_INTSTS_MASK & (otg_sc >> 8);
 
-	/* Only clear otg interrupts */
-	usb_dr_regs->otgsc |= cpu_to_le32(otg_sc & OTGSC_INTSTS_MASK);
-
+	/* Only clear otg interrupts expect OTGSC_INTSTS_B_SESSION_VALID*/
+	/* Leave OTGSC_INTSTS_B_SESSION_VALID to be handled by arcotg_udc
+	driver */
+	usb_dr_regs->otgsc = (usb_dr_regs->otgsc |
+			cpu_to_le32(otg_sc & OTGSC_INTSTS_MASK))
+			& ~OTGSC_INTSTS_B_SESSION_VALID;
 	/*FIXME: ID change not generate when init to 0 */
 	fsm->id = (otg_sc & OTGSC_STS_USB_ID) ? 1 : 0;
 	otg->default_a = (fsm->id == 0);

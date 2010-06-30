@@ -2070,7 +2070,9 @@ bool try_wake_up_udc(struct fsl_udc *udc)
 			fsl_writel(tmp | USB_CMD_RUN_STOP, &dr_regs->usbcmd);
 			printk(KERN_INFO "%s: udc out low power mode\n", __func__);
 		} else {
-			printk(KERN_INFO "%s: udc enter low power mode \n", __func__);
+			printk(KERN_INFO "udc enter low power mode \n");
+			if (udc->driver)
+				udc->driver->disconnect(&udc->gadget);
 			fsl_writel(tmp & ~USB_CMD_RUN_STOP, &dr_regs->usbcmd);
 			udc->stopped = 1;
 			/* enable wake up */
@@ -2089,7 +2091,7 @@ bool try_wake_up_udc(struct fsl_udc *udc)
 static irqreturn_t fsl_udc_irq(int irq, void *_udc)
 {
 	struct fsl_udc *udc = _udc;
-	u32 irq_src;
+	u32 irq_src, otgsc;;
 	irqreturn_t status = IRQ_NONE;
 	unsigned long flags;
 
@@ -2163,6 +2165,17 @@ static irqreturn_t fsl_udc_irq(int irq, void *_udc)
 					please reboot your board\n");
 			printk(KERN_ERR "If this error happens frequently, \
 				please check your dma buffer\n");
+		}
+	}
+	if (!device_can_wakeup(udc_controller->gadget.dev.parent)) {
+		otgsc = fsl_readl(&dr_regs->otgsc);
+		if (otgsc & OTGSC_B_SESSION_VALID_IRQ_STS) {
+			fsl_writel(otgsc, &dr_regs->otgsc);
+			if (!(otgsc & OTGSC_B_SESSION_VALID)) {
+				if (udc->driver)
+					udc->driver->disconnect(&udc->gadget);
+			}
+			status = IRQ_HANDLED;
 		}
 	}
 

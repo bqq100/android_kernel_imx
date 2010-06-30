@@ -197,5 +197,7 @@ void __init mx5_usb_dr_init(void)
 	dr_utmi_config.operating_mode = DR_UDC_MODE;
 	platform_device_add_data(&mxc_usbdr_udc_device, &dr_utmi_config, sizeof(dr_utmi_config));
 	platform_device_register(&mxc_usbdr_udc_device);
+
+	device_init_wakeup(&mxc_usbdr_udc_device.dev, 1);
 #endif
 }

@@ -442,9 +442,15 @@ static pgprot_t phys_mem_access_prot(struct file *file, pgprot_t vma_prot)
 {
 	int id = get_id(file);
 #ifdef pgprot_noncached
-	if (pmem[id].cached == 0 || file->f_flags & O_SYNC)
+	if (pmem[id].cached == PMEM_NONCACHE_DEVICE || file->f_flags & O_SYNC)
 		return pgprot_noncached(vma_prot);
 #endif
+
+#ifdef pgprot_writecombine
+	else if (pmem[id].cached == PMEM_NONCACHE_NORMAL)
+		return pgprot_writecombine(vma_prot);
+#endif
+
 #ifdef pgprot_ext_buffered
 	else if (pmem[id].buffered)
 		return pgprot_ext_buffered(vma_prot);

@@ -52,6 +52,10 @@ struct android_pmem_platform_data
 	unsigned buffered;
 };
 
+#define PMEM_NONCACHE_NORMAL 1 /* normal type memory(main memory, SDRAM,DDR,...), cache disable, writebuffer enbale */
+#define PMEM_NONCACHE_DEVICE 2 /* strongly ordered type memory (io, registers ...), cache disable, writebuffer disable */
+#define PMEM_CACHE_ENABLE        3 /* normal type memory, cache enable, writebuffer enable,  (for arm v7 writeback non-writealloc) */
+
 struct pmem_region {
 	unsigned long offset;
 	unsigned long len;

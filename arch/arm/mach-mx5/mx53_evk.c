@@ -1357,7 +1357,7 @@ static struct android_pmem_platform_data android_pmem_pdata = {
 	.start = 0,
 	.size = SZ_64M,
 	.no_allocator = 0,
-	.cached = 0,
+	.cached = PMEM_NONCACHE_NORMAL,
 };
 
 static struct android_pmem_platform_data android_pmem_gpu_pdata = {
@@ -1365,7 +1365,7 @@ static struct android_pmem_platform_data android_pmem_gpu_pdata = {
 	.start = 0,
 	.size = SZ_32M,
 	.no_allocator = 0,
-	.cached = 1,
+	.cached = PMEM_CACHE_ENABLE,
 };
 
 static struct android_usb_platform_data android_usb_pdata = {

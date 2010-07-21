@@ -1747,7 +1747,8 @@ static int mxcfb_probe(struct platform_device *pdev)
 	mxcfb_check_var(&fbi->var, fbi);
 
 	/* Default Y virtual size is 2x panel size */
-	fbi->var.yres_virtual = fbi->var.yres * 3;
+	fbi->var.yres_virtual = ((fbi->var.yres + 127) & ~127) * 2;
+	fbi->var.xres_virtual = (fbi->var.xres + 31) & ~31;
 
 	mxcfb_set_fix(fbi);
 

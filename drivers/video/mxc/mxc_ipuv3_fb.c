@@ -967,7 +967,6 @@ static int mxcfb_ioctl(struct fb_info *fbi, unsigned int cmd, unsigned long arg)
 				retval = 0;
 			}
 
-			down(&mxc_fbi->flip_sem);
 			break;
 		}
 	case FBIO_ALLOC:

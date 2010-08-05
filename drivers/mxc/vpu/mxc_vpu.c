@@ -693,7 +693,9 @@ static int vpu_suspend(struct platform_device *pdev, pm_message_t state)
 	for (i = 0; i < vpu_clk_usercount; i++)
 		clk_disable(vpu_clk);
 
-	if (!cpu_is_mx53()) {
+	if (!cpu_is_mx37())
+	    return 0;
+	else {
 		clk_enable(vpu_clk);
 		if (bitwork_mem.cpu_addr != 0) {
 			SAVE_WORK_REGS;
@@ -709,8 +711,7 @@ static int vpu_suspend(struct platform_device *pdev, pm_message_t state)
 		clk_disable(vpu_clk);
 	}
 
-	if (cpu_is_mx37() || cpu_is_mx51())
-		mxc_pg_enable(pdev);
+	mxc_pg_enable(pdev);
 
 	return 0;
 
@@ -724,11 +725,10 @@ static int vpu_resume(struct platform_device *pdev)
 {
 	int i;
 
-	if (cpu_is_mx37() || cpu_is_mx51())
+	if (cpu_is_mx37())
 		mxc_pg_disable(pdev);
-
-	if (cpu_is_mx53())
-		goto recover_clk;
+	else
+	    goto recover_clk;
 
 	clk_enable(vpu_clk);
 	if (bitwork_mem.cpu_addr != 0) {
@@ -799,6 +799,7 @@ recover_clk:
 	/* Recover vpu clock */
 	for (i = 0; i < vpu_clk_usercount; i++)
 		clk_enable(vpu_clk);
+	printk("vpu_resume end\n");
 
 	return 0;
 }

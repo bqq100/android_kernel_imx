@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.31
-# Thu Jul 29 13:27:53 2010
+# Thu Aug  5 13:43:49 2010
 #
 CONFIG_ARM=y
 CONFIG_HAVE_PWM=y
@@ -855,6 +855,7 @@ CONFIG_DEVKMEM=y
 # CONFIG_SERIAL_NONSTANDARD is not set
 CONFIG_FM_SI4702=m
 CONFIG_MXC_IIM=y
+CONFIG_MXS_VIIM=y
 CONFIG_IMX_SIM=m
 
 #

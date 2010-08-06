@@ -1370,23 +1370,8 @@ static irqreturn_t mxcfb_irq_handler(int irq, void *dev_id)
 		ipu_disable_irq(irq);
 		mxc_fbi->wait4vsync = 0;
 	} else {
-		if (!ipu_check_buffer_busy(mxc_fbi->ipu_ch,
-				IPU_INPUT_BUFFER, mxc_fbi->cur_ipu_buf)
-				|| (mxc_fbi->waitcnt > 2)) {
-			/*
-			 * This interrupt come after pan display select
-			 * cur_ipu_buf buffer, this buffer should become
-			 * idle after show. If it keep busy, clear it manually.
-			 */
-			if (mxc_fbi->waitcnt > 2)
-				ipu_clear_buffer_ready(mxc_fbi->ipu_ch,
-						IPU_INPUT_BUFFER,
-						mxc_fbi->cur_ipu_buf);
-			up(&mxc_fbi->flip_sem);
-			ipu_disable_irq(irq);
-			mxc_fbi->waitcnt = 0;
-		} else
-			mxc_fbi->waitcnt++;
+		up(&mxc_fbi->flip_sem);
+		ipu_disable_irq(irq);
 	}
 	return IRQ_HANDLED;
 }

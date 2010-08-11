@@ -210,5 +210,6 @@ void __init mx5_usbh1_init(void)
 		usbh1_config.gpio_usb_inactive = gpio_usbh1_inactive;
 	}
 	mxc_register_device(&mxc_usbh1_device, &usbh1_config);
+	device_init_wakeup(&mxc_usbh1_device.dev, 1);
 }
 

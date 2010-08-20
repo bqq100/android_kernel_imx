@@ -1187,7 +1187,7 @@ static void __init mxc_board_init(void)
 	mx50_arm2_io_init();
 
 	mxc_register_device(&mxc_dma_device, NULL);
-	mxc_register_device(&mxs_dma_apbh_device, &dma_apbh_data);
+	//mxc_register_device(&mxs_dma_apbh_device, &dma_apbh_data);
 	mxc_register_device(&mxc_wdt_device, NULL);
 	mxc_register_device(&mxcspi1_device, &mxcspi1_data);
 	mxc_register_device(&mxcspi3_device, &mxcspi3_data);

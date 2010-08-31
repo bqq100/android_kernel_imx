@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.31
-# Fri Aug 20 15:44:31 2010
+# Tue Aug 31 20:00:25 2010
 #
 CONFIG_ARM=y
 CONFIG_HAVE_PWM=y
@@ -1169,7 +1169,7 @@ CONFIG_VIDEO_MXC_IPU_OUTPUT=y
 # CONFIG_VIDEO_SAA5249 is not set
 # CONFIG_SOC_CAMERA is not set
 CONFIG_V4L_USB_DRIVERS=y
-# CONFIG_USB_VIDEO_CLASS is not set
+CONFIG_USB_VIDEO_CLASS=y
 CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV=y
 CONFIG_USB_GSPCA=m
 # CONFIG_USB_M5602 is not set

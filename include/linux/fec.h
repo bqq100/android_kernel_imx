@@ -18,6 +18,7 @@
 
 struct fec_platform_data {
 	phy_interface_t phy;
+	unsigned int phy_mask;
 	unsigned char mac[ETH_ALEN];
 	int (*init)(void);
 	int (*uninit)(void);

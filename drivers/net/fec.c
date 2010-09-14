@@ -808,7 +808,7 @@ static struct mii_bus *fec_enet_mii_init(struct platform_device *pdev)
 {
 	struct net_device *dev = platform_get_drvdata(pdev);
 	struct fec_enet_private *fep = netdev_priv(dev);
-	struct fec_enet_platform_data *pdata;
+	struct fec_platform_data *pdata;
 	int err = -ENXIO, i;
 
 	fep->mii_timeout = 0;
@@ -837,6 +837,7 @@ static struct mii_bus *fec_enet_mii_init(struct platform_device *pdev)
 	fep->mii_bus->priv = fep;
 	fep->mii_bus->parent = &pdev->dev;
 	pdata = pdev->dev.platform_data;
+	fep->mii_bus->phy_mask = pdata->phy_mask;
 
 	fep->mii_bus->irq = kmalloc(sizeof(int) * PHY_MAX_ADDR, GFP_KERNEL);
 	if (!fep->mii_bus->irq) {

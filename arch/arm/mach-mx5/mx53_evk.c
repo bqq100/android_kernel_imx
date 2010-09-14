@@ -594,6 +594,7 @@ static struct mxc_vpu_platform_data mxc_vpu_data = {
 
 static struct fec_platform_data fec_data = {
 	.phy = PHY_INTERFACE_MODE_RMII,
+	.phy_mask = ~1UL,
 };
 
 /* workaround for ecspi chipselect pin may not keep correct level when idle */

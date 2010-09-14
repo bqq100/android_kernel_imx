@@ -31,6 +31,7 @@
 #include <linux/ipu.h>
 #include <linux/mxcfb.h>
 #include <linux/pwm_backlight.h>
+#include <linux/fec.h>
 #include <mach/common.h>
 #include <mach/hardware.h>
 #include <asm/setup.h>
@@ -361,6 +362,11 @@ static struct mxc_ipu_config mxc_ipu_data = {
 extern void mx5_vpu_reset(void);
 static struct mxc_vpu_platform_data mxc_vpu_data = {
 	.reset = mx5_vpu_reset,
+};
+
+static struct fec_platform_data fec_data = {
+	.phy = PHY_INTERFACE_MODE_MII,
+	.phy_mask = ~1UL,
 };
 
 /* workaround for ecspi chipselect pin may not keep correct level when idle */
@@ -1335,7 +1341,7 @@ static void __init mxc_board_init(void)
 	mxc_register_device(&mxc_ssi1_device, NULL);
 	mxc_register_device(&mxc_ssi2_device, NULL);
 	mxc_register_device(&mxc_alsa_spdif_device, &mxc_spdif_data);
-	mxc_register_device(&mxc_fec_device, NULL);
+	mxc_register_device(&mxc_fec_device, &fec_data);
 	mxc_register_device(&mxc_v4l2_device, NULL);
 	mxc_register_device(&mxc_v4l2out_device, NULL);
 	mxc_register_device(&mxc_android_pmem_device, &android_pmem_pdata);

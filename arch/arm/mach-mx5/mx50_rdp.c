@@ -44,6 +44,8 @@
 #include <linux/videodev2.h>
 #include <linux/mxcfb.h>
 #include <linux/fec.h>
+#include <linux/android_pmem.h>
+#include <linux/usb/android.h>
 #include <asm/irq.h>
 #include <asm/setup.h>
 #include <asm/mach-types.h>
@@ -667,6 +669,32 @@ static int __init w1_setup(char *__unused)
 
 __setup("w1", w1_setup);
 
+static struct android_pmem_platform_data android_pmem_pdata = {
+	.name = "pmem_adsp",
+	.start = 0,
+	.size = SZ_4M,
+	.no_allocator = 0,
+	.cached = PMEM_NONCACHE_NORMAL,
+};
+
+static struct android_pmem_platform_data android_pmem_gpu_pdata = {
+	.name = "pmem_gpu",
+	.start = 0,
+	.size = SZ_32M,
+	.no_allocator = 0,
+	.cached = PMEM_CACHE_ENABLE,
+};
+
+static struct android_usb_platform_data android_usb_pdata = {
+	.vendor_id      = 0x0bb4,
+	.product_id     = 0x0c01,
+	.adb_product_id = 0x0c02,
+	.version        = 0x0100,
+	.product_name   = "Android Phone",
+	.manufacturer_name = "Freescale",
+	.nluns = 3,
+};
+
 /*!
  * Board specific fixup function. It is called by \b setup_arch() in
  * setup.c file very early on during kernel starts. It allows the user to
@@ -681,10 +709,34 @@ __setup("w1", w1_setup);
 static void __init fixup_mxc_board(struct machine_desc *desc, struct tag *tags,
 				   char **cmdline, struct meminfo *mi)
 {
+	struct tag *t;
+	int size;
+
 	mxc_set_cpu_type(MXC_CPU_MX50);
 
 	get_cpu_wp = mx50_rdp_get_cpu_wp;
 	set_num_cpu_wp = mx50_rdp_set_num_cpu_wp;
+
+	for_each_tag(t, tags) {
+		if (t->hdr.tag != ATAG_MEM)
+			continue;
+		size = t->u.mem.size;
+
+		android_pmem_pdata.start =
+				PHYS_OFFSET + size - android_pmem_pdata.size;
+		android_pmem_gpu_pdata.start =
+				android_pmem_pdata.start - android_pmem_gpu_pdata.size;
+#if 0
+		gpu_device.resource[5].start =
+				android_pmem_gpu_pdata.start - SZ_16M;
+		gpu_device.resource[5].end =
+				gpu_device.resource[5].start + SZ_16M - 1;
+#endif
+		size -= android_pmem_pdata.size;
+		size -= android_pmem_gpu_pdata.size;
+		//size -= SZ_16M;
+		t->u.mem.size = size;
+	}
 }
 
 static void __init mx50_rdp_io_init(void)
@@ -799,6 +851,10 @@ static void __init mxc_board_init(void)
 	mxc_register_device(&lcd_wvga_device, &lcd_wvga_data);
 	mxc_register_device(&elcdif_device, &fb_data[0]);
 	mxc_register_device(&mxs_viim, NULL);
+
+	mxc_register_device(&mxc_android_pmem_device, &android_pmem_pdata);
+	mxc_register_device(&mxc_android_pmem_gpu_device, &android_pmem_gpu_pdata);
+	mxc_register_device(&android_usb_device, &android_usb_pdata);
 
 	mx50_rdp_init_mc13892();
 /*

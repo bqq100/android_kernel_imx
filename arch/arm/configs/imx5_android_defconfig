@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.31
-# Wed Sep 15 11:13:28 2010
+# Wed Sep 15 14:47:44 2010
 #
 CONFIG_ARM=y
 CONFIG_HAVE_PWM=y
@@ -1349,7 +1349,7 @@ CONFIG_FB_MXC_EPSON_VGA_SYNC_PANEL=y
 CONFIG_FB_MXC_TVOUT_TVE=y
 CONFIG_FB_MXC_LDB=y
 # CONFIG_FB_MXC_CLAA_WVGA_SYNC_PANEL is not set
-CONFIG_FB_MXC_SII9022=y
+# CONFIG_FB_MXC_SII9022 is not set
 CONFIG_FB_MXC_CH7026=y
 # CONFIG_FB_MXC_TVOUT_CH7024 is not set
 # CONFIG_FB_MXC_ASYNC_PANEL is not set

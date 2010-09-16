@@ -1178,11 +1178,6 @@ static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
 		return -E2BIG;
 	}
 
-	/* Defaultly disable autosuspend for hub and reley on sys
-	 * to enable it.
-	 */
-	hdev->autosuspend_disabled = 1;
-
 #ifdef	CONFIG_USB_OTG_BLACKLIST_HUB
 	if (hdev->parent) {
 		dev_warn(&intf->dev, "ignoring external hub\n");
@@ -2303,7 +2298,6 @@ static int hub_suspend(struct usb_interface *intf, pm_message_t msg)
 	struct usb_hub		*hub = usb_get_intfdata (intf);
 	struct usb_device	*hdev = hub->hdev;
 	unsigned		port1;
-
 	/* fail if children aren't already suspended */
 	for (port1 = 1; port1 <= hdev->maxchild; port1++) {
 		struct usb_device	*udev;
@@ -2327,8 +2321,15 @@ static int hub_suspend(struct usb_interface *intf, pm_message_t msg)
 static int hub_resume(struct usb_interface *intf)
 {
 	struct usb_hub *hub = usb_get_intfdata(intf);
+	struct usb_hcd *hcd = bus_to_hcd(hub->hdev->bus);
 
 	dev_dbg(&intf->dev, "%s\n", __func__);
+	/* At otg mode, if the hcd which the hub is attached to is not accessible,
+	 * It should do nothing.
+	 */
+	if (!test_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags))
+		return 0;
+
 	hub_activate(hub, HUB_RESUME);
 	return 0;
 }

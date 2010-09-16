@@ -204,25 +204,7 @@ static int generic_suspend(struct usb_device *udev, pm_message_t msg)
 	 * interfaces manually by doing a bus (or "global") suspend.
 	 */
 	if (!udev->parent) {
-		struct usb_hcd  *hcd =
-			container_of(udev->bus, struct usb_hcd, self);
-		struct fsl_usb2_platform_data *pdata;
-		pdata = hcd->self.controller->platform_data;
-
 		rc = hcd_bus_suspend(udev, msg);
-
-		if (device_may_wakeup(hcd->self.controller)) {
-			clear_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
-			/* enable remote wake up irq */
-			usb_host_set_wakeup(hcd->self.controller, true);
-
-			/* Put PHY into low power mode */
-			temp = readl(hcd->regs + 0x184);
-			writel(temp | (1 << 23), (hcd->regs + 0x184));
-
-			if (pdata->usb_clock_for_pm)
-				pdata->usb_clock_for_pm(false);
-		}
 	/* Non-root devices don't need to do anything for FREEZE or PRETHAW */
 	} else if (msg.event == PM_EVENT_FREEZE ||
 			msg.event == PM_EVENT_PRETHAW)
@@ -244,13 +226,6 @@ static int generic_resume(struct usb_device *udev, pm_message_t msg)
 	 * interfaces manually by doing a bus (or "global") resume.
 	 */
 	if (!udev->parent) {
-		struct usb_hcd  *hcd =
-			container_of(udev->bus, struct usb_hcd, self);
-
-		if (device_may_wakeup(hcd->self.controller)) {
-			temp = readl(hcd->regs + 0x184);
-			writel(temp & (~(1 << 23)), (hcd->regs + 0x184));
-		}
 		rc = hcd_bus_resume(udev, msg);
 	} else
 		rc = usb_port_resume(udev, msg);

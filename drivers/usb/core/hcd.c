@@ -1739,6 +1739,7 @@ int hcd_bus_suspend(struct usb_device *rhdev, pm_message_t msg)
 	int		status;
 	int		old_state = hcd->state;
 
+	printk("%s\n", __func__);
 	dev_dbg(&rhdev->dev, "bus %s%s\n",
 			(msg.event & PM_EVENT_AUTO ? "auto-" : ""), "suspend");
 	if (!hcd->driver->bus_suspend) {
@@ -1876,7 +1877,6 @@ EXPORT_SYMBOL_GPL(usb_bus_start_enum);
 irqreturn_t usb_hcd_irq (int irq, void *__hcd)
 {
 	struct usb_hcd		*hcd = __hcd;
-	struct fsl_usb2_platform_data *pdata;
 	unsigned long		flags;
 	irqreturn_t		rc;
 
@@ -1885,25 +1885,14 @@ irqreturn_t usb_hcd_irq (int irq, void *__hcd)
 	 * assume it's never used.
 	 */
 	local_irq_save(flags);
-
-	if (!test_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags)) {
-		/* Need open clock for register access */
-		pdata = hcd->self.controller->platform_data;
-		if (pdata->usb_clock_for_pm)
-			pdata->usb_clock_for_pm(true);
-
-		/* if receive a remote wakeup interrrupt after suspend */
-		if (usb_host_wakeup_irq(hcd->self.controller)) {
-			/* disable remote wake up irq */
-			usb_host_set_wakeup(hcd->self.controller, false);
-
-			set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
-			hcd->driver->irq(hcd);
-			rc = IRQ_HANDLED;
-		} else
+	/* At otg mode, the host does need to handle device interrupt */
+	if (hcd->self.is_b_host){
+		local_irq_restore(flags);
+		return IRQ_NONE;
+	}
+	else if (unlikely(hcd->state == HC_STATE_HALT ||
+		!test_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags))) {
 			rc = IRQ_NONE;
-	} else if (unlikely(hcd->state == HC_STATE_HALT)) {
-		rc = IRQ_NONE;
 	} else if (hcd->driver->irq(hcd) == IRQ_NONE) {
 		rc = IRQ_NONE;
 	} else {

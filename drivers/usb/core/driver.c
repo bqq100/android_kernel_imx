@@ -1754,6 +1754,9 @@ int usb_resume(struct device *dev, pm_message_t msg)
 
 	udev = to_usb_device(dev);
 
+/* At otg mode, if it is a device wakeup interrupt, the host should do nothing */
+	if (udev->bus->is_b_host)
+		return 0;
 	/* If udev->skip_sys_resume is set then udev was already suspended
 	 * when the system sleep started, so we don't want to resume it
 	 * during this system wakeup.

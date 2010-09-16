@@ -27,8 +27,6 @@
 #include "ehci-fsl.h"
 #include <mach/fsl_usb.h>
 
-#undef pr_debug
-#define pr_debug printk
 extern int usb_host_wakeup_irq(struct device *wkup_dev);
 extern void usb_host_set_wakeup(struct device *wkup_dev, bool para);
 static void fsl_usb_lowpower_mode(struct fsl_usb2_platform_data *pdata, bool enable)
@@ -133,7 +131,7 @@ static irqreturn_t ehci_fsl_pre_irq(int irq, void *dev)
 		fsl_usb_clk_gate(hcd->self.controller->platform_data, true);
 		/* if receive a remote wakeup interrrupt after suspend */
 		if (usb_host_wakeup_irq(hcd->self.controller)) {
-			pr_debug("host wakeup happens\n");
+			printk("host wakeup event happens\n");
 			/* disable remote wake up irq */
 			usb_host_set_wakeup(hcd->self.controller, false);
 			fsl_usb_lowpower_mode(pdata, false);
@@ -390,7 +388,6 @@ static int ehci_fsl_bus_suspend(struct usb_hcd *hcd)
 	pdata = hcd->self.controller->platform_data;
 	pr_debug("%s, %s\n", __func__, pdata->name);
 
-
 	/* the host is already at low power mode */
 	if (!test_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags)) {
 		return 0;
@@ -418,7 +415,6 @@ static int ehci_fsl_bus_resume(struct usb_hcd *hcd)
 
 	pdata = hcd->self.controller->platform_data;
 	pr_debug("%s, %s\n", __func__, pdata->name);
-	pr_debug("%s, it is the host mode, %s\n", __func__, pdata->name);
 
 	/* if it is a remote wakeup, it will open clock and clear PHCD automatically */
 	if (!test_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags)) {
@@ -558,7 +554,7 @@ static int ehci_fsl_drv_suspend(struct platform_device *pdev,
 
 	/* Only handles OTG mode switch event, system suspend event will be done in bus suspend */
 	if (pdev->dev.power.status == DPM_SUSPENDING){
-		pr_debug("%s, pm event \n", __func__);
+		pr_debug("%s, system pm event \n", __func__);
 		if (!device_may_wakeup(&(pdev->dev))){
 			/* Need open clock for register access */
 			if (!test_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags))
@@ -593,8 +589,6 @@ static int ehci_fsl_drv_suspend(struct platform_device *pdev,
 	       "mode=%d  usbcmd %08x\n", __func__, pdata->name,
 	       pdata->suspended, pdata->already_suspended, mode, tmp);
 #endif
-
-	pr_debug("%s: suspending...\n", __func__);
 
 	printk(KERN_INFO "USB Host suspended\n");
 
@@ -634,9 +628,8 @@ static int ehci_fsl_drv_resume(struct platform_device *pdev)
 	u32 tmp;
 	struct fsl_usb2_platform_data *pdata = pdev->dev.platform_data;
 	/* Only handles OTG mode switch event */
-	printk("ehci fsl drv resume %s\n", pdata->name);
 	if (pdev->dev.power.status == DPM_RESUMING){
-		pr_debug("%s, pm event \n", __func__);
+		pr_debug("%s, system pm event \n", __func__);
 		if (hcd->self.is_b_host) {
 			if (!test_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags)) {
 				fsl_usb_clk_gate(hcd->self.controller->platform_data, true);
@@ -656,10 +649,7 @@ static int ehci_fsl_drv_resume(struct platform_device *pdev)
 		//fsl_usb_lowpower_mode(pdata, false);
 	}
 
-
-	pr_debug("%s resuming...\n", __func__);
-
-	printk("ehci fsl drv resume2 %s\n", pdata->name);
+	printk("USB Host resume ... %s\n", pdata->name);
 	/* set host mode */
 	fsl_platform_set_host_mode(hcd);
 
@@ -685,7 +675,7 @@ static int ehci_fsl_drv_resume(struct platform_device *pdev)
 		usb_unlock_device(roothub);
 	}
 
-	printk(KERN_INFO "USB Host resumed\n");
+	printk(KERN_INFO "USB Host resume ok\n");
 	return 0;
 }
 #endif

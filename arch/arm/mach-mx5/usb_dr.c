@@ -110,10 +110,10 @@ static void __wakeup_irq_enable(bool on, int source)
 		if (wakeup_irq_enable_src == (ENABLED_BY_HOST | ENABLED_BY_DEVICE)) {
 			USBCTRL |= UCTRL_OWIE;
 			USB_PHY_CTR_FUNC |= USB_UTMI_PHYCTRL_CONF2;
-			printk("wakeup irq is enabled\n");
+			printk("OTG wakeup irq is enabled\n");
 		}
 	}else {
-		printk("wakeup irq disable\n");
+		printk("OTG wakeup irq disable\n");
 		USB_PHY_CTR_FUNC &= ~USB_UTMI_PHYCTRL_CONF2;
 		USBCTRL &= ~UCTRL_OWIE;
 		wakeup_irq_enable_src &= ~source;
@@ -144,10 +144,8 @@ static void _host_wakeup_enable(struct fsl_usb2_platform_data *pdata, bool enabl
 	__wakeup_irq_enable(enable, ENABLED_BY_HOST);
 	/* host only care the ID change wakeup event */
 	if (enable) {
-		printk("host wakeup enable\n");
 		USBCTRL_HOST2 |= UCTRL_H2OIDWK_EN;
 	}else {
-		printk("host wakeup disable\n");
 		USBCTRL_HOST2 &= ~UCTRL_H2OIDWK_EN;
 		/* The interrupt must be disabled for at least 2 clock
 		 * cycles of the standby clock(32k Hz) , that is 0.0625 ms*/
@@ -167,10 +165,8 @@ static void _device_wakeup_enable(struct fsl_usb2_platform_data *pdata, bool ena
 		return;
 	}
 	if (enable) {
-		printk("device wakeup enable\n");
 		USBCTRL_HOST2 |= UCTRL_H2OVBWK_EN;
 	}else {
-		printk("device wakeup disable\n");
 		USBCTRL_HOST2 &= ~UCTRL_H2OVBWK_EN;
 	}
 }
@@ -184,10 +180,10 @@ static void __phy_lowpower_suspend(bool enable, int source)
 		low_power_enable_src |= source;
 		if (low_power_enable_src == (ENABLED_BY_HOST | ENABLED_BY_DEVICE)) {
 			UOG_PORTSC1 |= PORTSC_PHCD;
-			printk("phy lowpower enabled\n");
+		printk("OTG phy lowpower enable\n");
 		}
 	}else {
-		printk("phy lowpower disable\n");
+		printk("OTG phy lowpower disable\n");
 		UOG_PORTSC1 &= ~PORTSC_PHCD;
 		low_power_enable_src &= ~source;
 	}

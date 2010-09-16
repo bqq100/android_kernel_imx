@@ -2028,8 +2028,6 @@ static void suspend_irq(struct fsl_udc *udc)
 */
 static bool wake_up_irq(struct fsl_udc *udc)
 {
-	pr_debug("%s\n", __func__);
-
 	/* Because the IC design needs to remove the glitch on ID so the otgsc bit 8 will
 	* be delayed max 2 ms to show the real ID pin value
 	*/
@@ -2139,9 +2137,11 @@ bool try_wake_up_udc(struct fsl_udc *udc)
 		mdelay(3);
 		b_device = (irq_src & OTGSC_STS_USB_ID)? true:false;
 		fsl_writel(irq_src, &dr_regs->otgsc);
+		if (!b_device)
+			return false;
 		tmp = fsl_readl(&dr_regs->usbcmd);
 		/* check BSV bit to see if fall or rise */
-		if ((irq_src & OTGSC_B_SESSION_VALID) && b_device) {
+		if (irq_src & OTGSC_B_SESSION_VALID) {
 			if (udc->suspended) /*let the system pm resume the udc */
 				return true;
 			udc->stopped = 0;

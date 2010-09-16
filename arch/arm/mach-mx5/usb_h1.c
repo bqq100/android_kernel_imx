@@ -81,7 +81,6 @@ static void _wake_up_enable(struct fsl_usb2_platform_data *pdata, bool enable)
 
 static void _phy_lowpower_suspend(bool enable)
 {
-	pr_debug("%s, enable is %d\n", __func__, enable);
 	if (enable) {
 		UH1_PORTSC1 |= PORTSC_PHCD;
 	}else {

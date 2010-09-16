@@ -495,7 +495,7 @@ static struct regulator_init_data max17135_init_data[] __initdata = {
 	},
 };
 
-void epdc_get_pins(void)
+static void epdc_get_pins(void)
 {
 	/* Claim GPIOs for EPDC pins - used during power up/down */
 	gpio_request(EPDC_D0, "epdc_d0");
@@ -520,7 +520,7 @@ void epdc_get_pins(void)
 	gpio_request(EPDC_SDCE2, "epdc_sdce2");
 }
 
-void epdc_put_pins(void)
+static void epdc_put_pins(void)
 {
 	gpio_free(EPDC_D0);
 	gpio_free(EPDC_D1);
@@ -544,7 +544,7 @@ void epdc_put_pins(void)
 	gpio_free(EPDC_SDCE2);
 }
 
-void epdc_enable_pins(void)
+static void epdc_enable_pins(void)
 {
 	struct pad_desc epdc_d0 = MX50_PAD_EPDC_D0__EPDC_D0;
 	struct pad_desc epdc_d1 = MX50_PAD_EPDC_D1__EPDC_D1;
@@ -611,7 +611,7 @@ void epdc_enable_pins(void)
 	gpio_direction_input(EPDC_SDCE2);
 }
 
-void epdc_disable_pins(void)
+static void epdc_disable_pins(void)
 {
 	struct pad_desc epdc_d0 = MX50_PAD_EPDC_D0__GPIO_3_0;
 	struct pad_desc epdc_d1 = MX50_PAD_EPDC_D1__GPIO_3_1;

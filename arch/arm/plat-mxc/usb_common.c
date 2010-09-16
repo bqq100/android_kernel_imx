@@ -801,9 +801,9 @@ int usbotg_init(struct platform_device *pdev)
 	pdata->xcvr_type = xops->xcvr_type;
 	pdata->pdev = pdev;
 
+	if (fsl_check_usbclk() != 0)
+		return -EINVAL;
 	if (!otg_used) {
-		if (fsl_check_usbclk() != 0)
-			return -EINVAL;
 		if (cpu_is_mx50())
 			/* Turn on AHB CLK for OTG*/
 			USB_CLKONOFF_CTRL &= ~OTG_AHBCLK_OFF;
@@ -882,8 +882,8 @@ int usb_host_wakeup_irq(struct device *wkup_dev)
 		wakeup_req = USBCTRL & UCTRL_H1WIR;
 	} else if (!strcmp("DR", pdata->name)) {
 		wakeup_req = USBCTRL & UCTRL_OWIR;
-		/* If DR is in device mode, let udc handle it */
-		if (wakeup_req && ((UOG_USBMODE & 0x3) == 0x2))
+		/* If not ID wakeup, let udc handle it */
+		if (wakeup_req && (UOG_OTGSC & OTGSC_STS_USB_ID))
 			wakeup_req = 0;
 	}
 

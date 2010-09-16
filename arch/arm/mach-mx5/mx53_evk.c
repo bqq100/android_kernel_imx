@@ -1702,7 +1702,7 @@ static void __init mxc_board_init(void)
 	mxc_register_device(&mxc_android_pmem_device, &android_pmem_pdata);
 	mxc_register_device(&mxc_android_pmem_gpu_device, &android_pmem_gpu_pdata);
 	mxc_register_device(&android_usb_device, &android_usb_pdata);
-
+	mxc_register_device(&mxc_powerkey_device, NULL);
 	mx53_evk_init_mc13892();
 /*
 	pm_power_off = mxc_power_off;

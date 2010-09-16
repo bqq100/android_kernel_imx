@@ -268,7 +268,7 @@ static struct regulator_init_data gpo4_init = {
 		.name = "GPO4",
 	}
 };
-
+#if 0
 /*!
  * the event handler for power on event
  */
@@ -276,20 +276,20 @@ static void power_on_evt_handler(void)
 {
 	pr_info("pwr on event1 is received \n");
 }
-
+#endif
 static int mc13892_regulator_init(struct mc13892 *mc13892)
 {
 	unsigned int value;
-	pmic_event_callback_t power_key_event;
+//	pmic_event_callback_t power_key_event;
 	int register_mask;
 
 	pr_info("Initializing regulators for MX53 EVK \n");
-
+#if 0
 	/* subscribe PWRON1 event to enable ON_OFF key */
 	power_key_event.param = NULL;
 	power_key_event.func = (void *)power_on_evt_handler;
 	pmic_event_subscribe(EVENT_PWRONI, power_key_event);
-
+#endif
 	/* Bit 4 DRM: keep VSRTC and CLK32KMCU on for all states */
 #if defined(CONFIG_RTC_DRV_MXC_V2) || defined(CONFIG_RTC_DRV_MXC_V2_MODULE)
 	value = BITFVAL(DRM, 1);

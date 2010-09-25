@@ -3164,6 +3164,8 @@ static int fsl_udc_resume(struct platform_device *pdev)
 	if (udc_controller->transceiver->gadget == NULL)
 		return 0;
 #endif
+	if (udc_controller->stopped)
+		dr_clk_gate(true);
 	/*
 	 * If the controller was stopped at suspend time, then
 	 * don't resume it now.
@@ -3177,38 +3179,28 @@ static int fsl_udc_resume(struct platform_device *pdev)
 		if (!device_may_wakeup(udc_controller->gadget.dev.parent) &&
 			udc_controller->gadget.dev.parent->power.status
 			== DPM_RESUMING){
-			if (udc_controller->pdata->usb_clock_for_pm)
-				udc_controller->pdata->usb_clock_for_pm(true);
 			dr_wake_up_enable(udc_controller, true);
-
-			if (udc_controller->pdata->usb_clock_for_pm)
-				udc_controller->pdata->usb_clock_for_pm(false);
-
 		}
 
 	if (--udc_controller->suspended) {
 		printk("gadget was already stopped, leaving early\n");
-		return 0;
+		goto out;
 	}
-
 	/* Enable DR irq reg and set controller Run */
 	if (udc_controller->stopped) {
-		dr_clk_gate(true);
 		/* if in host mode, we need to do nothing */
 		if ((fsl_readl(&dr_regs->otgsc) & OTGSC_STS_USB_ID) == 0) {
-			dr_clk_gate(false);
-			return 0;
+			goto out;
 		}
 		dr_wake_up_enable(udc_controller, false);
 		dr_phy_low_power_mode(udc_controller, false);
 		mdelay(10);
-
 		dr_controller_setup(udc_controller);
 		dr_controller_run(udc_controller);
 	}
 	udc_controller->usb_state = USB_STATE_ATTACHED;
 	udc_controller->ep0_dir = 0;
-
+out:
 	/* if udc is resume by otg id change and no device
 	 * connecting to the otg, otg will enter low power mode*/
 	if (udc_controller->stopped)

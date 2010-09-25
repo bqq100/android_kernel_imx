@@ -44,7 +44,7 @@ static int mxcpwrkey_probe(struct platform_device *pdev)
 	int retval,err;
 	pmic_event_callback_t power_key_event;
 
-	printk("EVK board powerkey probe\n");
+	printk("I.MX5 powerkey probe\n");
 /*
 	init_completion(&pk_cmd_done);
 	pwrkey_task = kthread_run(powerkey_thread, pdev, "powerkey");

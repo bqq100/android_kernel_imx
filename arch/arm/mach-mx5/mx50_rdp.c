@@ -1103,9 +1103,9 @@ static void __init mxc_board_init(void)
 	mxc_register_device(&mxc_dvfs_core_device, &dvfs_core_data);
 	mxc_register_device(&mxc_dvfs_per_device, &dvfs_per_data);
 	*/
-
+	/*
 	mxc_register_device(&mxc_keypad_device, &keypad_plat_data);
-
+	*/
 	mxc_register_device(&mxcsdhc1_device, &mmc1_data);
 	mxc_register_device(&mxcsdhc2_device, &mmc2_data);
 	mxc_register_device(&mxcsdhc3_device, &mmc3_data);
@@ -1127,7 +1127,7 @@ static void __init mxc_board_init(void)
 	mxc_register_device(&mxc_android_pmem_device, &android_pmem_pdata);
 	mxc_register_device(&mxc_android_pmem_gpu_device, &android_pmem_gpu_pdata);
 	mxc_register_device(&android_usb_device, &android_usb_pdata);
-
+	mxc_register_device(&mxc_powerkey_device, NULL);
 	mx50_rdp_init_mc13892();
 /*
 	pm_power_off = mxc_power_off;

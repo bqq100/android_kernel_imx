@@ -1251,23 +1251,19 @@ static struct mxc_mlb_platform_data mlb_data = {
 #ifdef CONFIG_MTD_PARTITIONS
 static struct mtd_partition nand_flash_partitions[] = {
 	{
-	 .name = "bootloader",
+	 .name = "BOOT",
 	 .offset = 0,
-	 .size = 3 * 1024 * 1024},
+	 .size = 7 * 1024 * 1024},
 	{
-	 .name = "nand.kernel",
+	 .name = "MISC",
 	 .offset = MTDPART_OFS_APPEND,
-	 .size = 5 * 1024 * 1024},
+	 .size = 1 * 1024 * 1024},
 	{
-	 .name = "nand.rootfs",
+	 .name = "RECOVERY",
 	 .offset = MTDPART_OFS_APPEND,
-	 .size = 256 * 1024 * 1024},
+	 .size = 20 * 1024 * 1024},
 	{
-	 .name = "nand.userfs1",
-	 .offset = MTDPART_OFS_APPEND,
-	 .size = 256 * 1024 * 1024},
-	{
-	 .name = "nand.userfs2",
+	 .name = "ROOT",
 	 .offset = MTDPART_OFS_APPEND,
 	 .size = MTDPART_SIZ_FULL},
 };

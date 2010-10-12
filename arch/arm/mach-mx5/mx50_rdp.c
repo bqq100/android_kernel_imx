@@ -309,6 +309,7 @@ static struct mxc_w1_config mxc_w1_data = {
 
 static struct fec_platform_data fec_data = {
 	.phy = PHY_INTERFACE_MODE_RMII,
+	.phy_mask = ~1UL,
 };
 
 static u16 keymapping[8] = {

@@ -1865,13 +1865,11 @@ static int mxcfb_option_setup(struct fb_info *info, char *options)
 	return 0;
 }
 
-#define CAN_EARLYSUSPEND(fbinfo) (fbinfo && (strcmp(fbinfo->fix.id, "DISP3 FG") != 0))
-
 static void mxcfb_early_suspend(struct early_suspend *h)
 {
 	int i;
-	for (i = 0; i < FB_DEVICE_NUM; i++) {
-		if (CAN_EARLYSUSPEND(mxcfb_info[i]))
+	for (i = FB_DEVICE_NUM - 1; i >= 0; i--) {
+		if (mxcfb_info[i])
 			mxcfb_suspend_one(mxcfb_info[i]);
 	}
 }
@@ -1880,7 +1878,7 @@ static void mxcfb_later_resume(struct early_suspend *h)
 {
 	int i;
 	for (i = 0; i < FB_DEVICE_NUM; i++) {
-		if (CAN_EARLYSUSPEND(mxcfb_info[i]))
+		if (mxcfb_info[i])
 			mxcfb_resume_one(mxcfb_info[i]);
 	}
 }
